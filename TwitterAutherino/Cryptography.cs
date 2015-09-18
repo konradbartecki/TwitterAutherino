@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
+using TwitterAutherino.Model;
 
 namespace TwitterAutherino
 {
@@ -30,6 +31,49 @@ namespace TwitterAutherino
             
         //}
 
+        internal static string GetBaseStringSignature(TwitterRequest request)
+        {
+            //Consumer key, timestamp, nonce mandatory
+            //Token in 2 of 3 scenarios
+            //Callback url in 1 scenario
+            string SigBaseStringParams = "";
+            if (request.RequestType == RequestType.GetRequestToken)
+            {
+                SigBaseStringParams = "oauth_callback=" + Uri.EscapeDataString(request.CallbackAddress);
+                SigBaseStringParams += "&" + "oauth_consumer_key=" + request.ConsumerKeypair.PublicKey;
+            }
+            else
+            {
+                SigBaseStringParams += "oauth_consumer_key=" + request.ConsumerKeypair.PublicKey;
+            }                           
+            SigBaseStringParams += "&" + "oauth_nonce=" + request.Nonce;
+            SigBaseStringParams += "&" + "oauth_signature_method=HMAC-SHA1";
+            SigBaseStringParams += "&" + "oauth_timestamp=" + request.Timestamp;
+
+            switch (request.RequestType)
+            {
+                case RequestType.GeneralGet:
+                        SigBaseStringParams += "&" + "oauth_token=" + request.AccessKeypair.PublicKey;
+                    break;
+                case RequestType.GetAccessToken:
+                        SigBaseStringParams += "&" + "oauth_token=" + request.ConsumerKeypair.SecretKey;
+                    break;
+            }
+            SigBaseStringParams += "&" + "oauth_version=1.0";
+            string SigBaseString;
+            switch (request.RequestType)
+            {
+                case RequestType.GetAccessToken:
+                    SigBaseString = "POST&";
+                    break;
+                default:
+                    SigBaseString = "GET&";
+                    break;
+            }
+            SigBaseString += Uri.EscapeDataString(request.RequestAddress) + "&" + Uri.EscapeDataString(SigBaseStringParams);
+            return SigBaseString;
+        }
+
 
         public static string GetTimeStamp()
         {
@@ -37,21 +81,24 @@ namespace TwitterAutherino
             return unixTimestamp.ToString();
         }
 
-        public static string GetSignature(string sigBaseString, string consumerSecretKey)
-        {
-            return GetSignature(sigBaseString, consumerSecretKey, false);
-        }
-
-        public static string GetSignature(string sigBaseString, string consumerSecretKey, bool isLongSigningKey)
+        internal static string GetSignature(TwitterRequest request)
         {
             Windows.Storage.Streams.IBuffer KeyMaterial;
-            if (isLongSigningKey)
-                KeyMaterial = CryptographicBuffer.ConvertStringToBinary(consumerSecretKey, BinaryStringEncoding.Utf8);
-            else
-                KeyMaterial = CryptographicBuffer.ConvertStringToBinary(consumerSecretKey + "&", BinaryStringEncoding.Utf8);
+
+            switch (request.RequestType)
+            {
+                case RequestType.GeneralGet:
+                    string signingkey = request.ConsumerKeypair.SecretKey + "&" + request.AccessKeypair.SecretKey;
+                    KeyMaterial = CryptographicBuffer.ConvertStringToBinary(signingkey, BinaryStringEncoding.Utf8);
+                    break;
+                default:
+                    KeyMaterial = CryptographicBuffer.ConvertStringToBinary(request.ConsumerKeypair.SecretKey + "&", BinaryStringEncoding.Utf8);
+                    break;
+
+            }
             MacAlgorithmProvider HmacSha1Provider = MacAlgorithmProvider.OpenAlgorithm("HMAC_SHA1");
             CryptographicKey MacKey = HmacSha1Provider.CreateKey(KeyMaterial);
-            Windows.Storage.Streams.IBuffer DataToBeSigned = CryptographicBuffer.ConvertStringToBinary(sigBaseString, BinaryStringEncoding.Utf8);
+            Windows.Storage.Streams.IBuffer DataToBeSigned = CryptographicBuffer.ConvertStringToBinary(request.UnsignedParametrsString, BinaryStringEncoding.Utf8);
             Windows.Storage.Streams.IBuffer SignatureBuffer = CryptographicEngine.Sign(MacKey, DataToBeSigned);
             string Signature = CryptographicBuffer.EncodeToBase64String(SignatureBuffer);
 
