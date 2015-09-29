@@ -12,8 +12,6 @@ using Windows.Web.Http.Headers;
 using TwitterAutherino.Model;
 //using HttpClient = System.Net.Http.HttpClient;
 using wss = Windows.Storage.Streams;
-using Windows.Web.Http;
-using Windows.Web.Http.Headers;
 using HttpClient = Windows.Web.Http.HttpClient;
 using HttpMethod = Windows.Web.Http.HttpMethod;
 using HttpRequestMessage = Windows.Web.Http.HttpRequestMessage;

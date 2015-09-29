@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwitterAutherino.Model.Enums;
-
 namespace TwitterAutherino.Model
 {
     public class BasicSignature
@@ -12,8 +6,6 @@ namespace TwitterAutherino.Model
         public Keypair ConsumerKeypair { get; set; }
         public string Nonce { get; set; }
         public string Timestamp { get; set; }
-        //private const string Version = "oauth_version=1.0";
-        //private const string SignatureMethod = "oauth_signature_method=HMAC-SHA1";
 
         public BasicSignature(Keypair consumerKeypair)
         {

@@ -26,55 +26,6 @@ namespace TwitterAutherino
             return builder.ToString().ToLower();
         }
 
-        //public static string GetSigBaseStringParams()
-        //{
-            
-        //}
-
-        internal static string GetBaseStringSignature(TwitterRequest request)
-        {
-            //Consumer key, timestamp, nonce mandatory
-            //Token in 2 of 3 scenarios
-            //Callback url in 1 scenario
-            string SigBaseStringParams = "";
-            if (request.RequestType == RequestType.GetRequestToken)
-            {
-                SigBaseStringParams = "oauth_callback=" + Uri.EscapeDataString(request.CallbackAddress);
-                SigBaseStringParams += "&" + "oauth_consumer_key=" + request.ConsumerKeypair.PublicKey;
-            }
-            else
-            {
-                SigBaseStringParams += "oauth_consumer_key=" + request.ConsumerKeypair.PublicKey;
-            }                           
-            SigBaseStringParams += "&" + "oauth_nonce=" + request.Nonce;
-            SigBaseStringParams += "&" + "oauth_signature_method=HMAC-SHA1";
-            SigBaseStringParams += "&" + "oauth_timestamp=" + request.Timestamp;
-
-            switch (request.RequestType)
-            {
-                case RequestType.GeneralGet:
-                        SigBaseStringParams += "&" + "oauth_token=" + request.AccessKeypair.PublicKey;
-                    break;
-                case RequestType.GetAccessToken:
-                        SigBaseStringParams += "&" + "oauth_token=" + request.ConsumerKeypair.SecretKey;
-                    break;
-            }
-            SigBaseStringParams += "&" + "oauth_version=1.0";
-            string SigBaseString;
-            switch (request.RequestType)
-            {
-                case RequestType.GetAccessToken:
-                    SigBaseString = "POST&";
-                    break;
-                default:
-                    SigBaseString = "GET&";
-                    break;
-            }
-            SigBaseString += Uri.EscapeDataString(request.RequestAddress) + "&" + Uri.EscapeDataString(SigBaseStringParams);
-            return SigBaseString;
-        }
-
-
         public static string GetTimeStamp()
         {
             Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
