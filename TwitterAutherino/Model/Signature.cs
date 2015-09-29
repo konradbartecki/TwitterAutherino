@@ -81,23 +81,83 @@ namespace TwitterAutherino.Model
     {
         private const string AccessTokenApiUri = "https://api.twitter.com/oauth/access_token";
         public SigningKey SigningKey { get; set; }
+        public Keypair RequestResponseKeypair { get; set; }
         private string SignatureParameters;
         private string SignatureBaseString;
-        private string SignedSignature;
+        public string SignedSignature { get; private set; }
         public string RequestUri { get; private set; }
 
-        public AccessTokenSignature(BasicSignature b, string callback)
+        public AccessTokenSignature(BasicSignature b, Keypair RequestResponseToken)
         {
             this.Timestamp = b.Timestamp;
             this.ConsumerKeypair = b.ConsumerKeypair;
             this.Nonce = b.Nonce;
-            this.Callback = callback;
+            this.RequestResponseKeypair = RequestResponseToken;
             this.SignatureParameters = GetSigBaseStringParams();
             this.SignatureBaseString = GetSignatureBaseString();
             SigningKey = new SigningKey(ConsumerKeypair, SignatureBaseString);
             this.SignedSignature = Cryptography.GetSignature(SigningKey);
-            RequestUri = RequestTokenApiUri + "?" + SignatureParameters + "&oauth_signature=" + Uri.EscapeDataString(SignedSignature);
+            RequestUri = AccessTokenApiUri + "?" + SignatureParameters + "&oauth_signature=" + Uri.EscapeDataString(SignedSignature);
         }
 
+        private string GetSigBaseStringParams()
+        {
+            String SigBaseStringParams = "oauth_consumer_key=" + this.ConsumerKeypair.PublicKey;
+            SigBaseStringParams += "&" + "oauth_nonce=" + this.Nonce;
+            SigBaseStringParams += "&" + "oauth_signature_method=HMAC-SHA1";
+            SigBaseStringParams += "&" + "oauth_timestamp=" + this.Timestamp;
+            SigBaseStringParams += "&" + "oauth_token=" + this.RequestResponseKeypair.PublicKey;
+            SigBaseStringParams += "&" + "oauth_version=1.0";
+            return SigBaseStringParams;
+
+        }
+
+        private string GetSignatureBaseString()
+        {
+            String SigBaseString = "POST&";
+            SigBaseString += Uri.EscapeDataString(AccessTokenApiUri) + "&" + Uri.EscapeDataString(this.SignatureParameters);
+            return SigBaseString;
+        }
+    }
+
+    public class GeneralGetSignature : BasicSignature
+    {
+        public SigningKey SigningKey { get; set; }
+        public Keypair AccessKeypair { get; set; }
+        private string SignatureParameters;
+        private string SignatureBaseString;
+        public string SignedSignature { get; private set; }
+        public string RequestUri { get; private set; }
+
+        public GeneralGetSignature(BasicSignature b, Keypair UserAccessKeypair, string requestUri)
+        {
+            this.Timestamp = b.Timestamp;
+            this.ConsumerKeypair = b.ConsumerKeypair;
+            this.Nonce = b.Nonce;
+            this.AccessKeypair = UserAccessKeypair;
+            this.RequestUri = requestUri;
+            this.SignatureParameters = GetSigBaseStringParams();
+            this.SignatureBaseString = GetSignatureBaseString();
+            SigningKey = new SigningKey(ConsumerKeypair, UserAccessKeypair, SignatureBaseString);
+            this.SignedSignature = Cryptography.GetSignature(SigningKey);
+        }
+
+        private string GetSigBaseStringParams()
+        {
+            String SigBaseStringParams = "oauth_consumer_key=" + this.ConsumerKeypair.PublicKey;
+            SigBaseStringParams += "&" + "oauth_nonce=" + this.Nonce;
+            SigBaseStringParams += "&" + "oauth_signature_method=HMAC-SHA1";
+            SigBaseStringParams += "&" + "oauth_timestamp=" + this.Timestamp;
+            SigBaseStringParams += "&" + "oauth_token=" + this.AccessKeypair.PublicKey;
+            SigBaseStringParams += "&" + "oauth_version=1.0";
+            return SigBaseStringParams;
+        }
+
+        private string GetSignatureBaseString()
+        {
+            String SigBaseString = "GET&";
+            SigBaseString += Uri.EscapeDataString(this.RequestUri) + "&" + Uri.EscapeDataString(this.SignatureParameters);
+            return SigBaseString;
+        }
     }
 }

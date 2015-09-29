@@ -42,10 +42,10 @@
     <Compile Include="Model\Keypair.cs" />
     <Compile Include="Model\KnownApiUri.cs" />
     <Compile Include="Model\Signature.cs" />
-    <Compile Include="Model\SignedSignature.cs" />
     <Compile Include="Model\Interfaces\ISigningKey.cs" />
     <Compile Include="Model\SigningKey.cs" />
     <Compile Include="Model\TwitterRequest.cs" />
+    <Compile Include="Model\User.cs" />
     <Compile Include="TwitterAuth.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

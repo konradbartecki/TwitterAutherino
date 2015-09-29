@@ -26,7 +26,7 @@ namespace TwitterAutherino.Model
         public string GetSigningKey()
         {
             if (ClientKeypair != null && 
-                string.IsNullOrWhiteSpace(ClientKeypair.SecretKey))
+                !string.IsNullOrWhiteSpace(ClientKeypair.SecretKey))
             {
                 return this.ConsumerKeypair.SecretKey + "&" + ClientKeypair.SecretKey;
             }
