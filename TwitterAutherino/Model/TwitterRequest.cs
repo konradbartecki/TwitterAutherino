@@ -75,7 +75,7 @@ namespace TwitterAutherino.Model
         private void Sign()
         {
             this.UnsignedParametrsString = Cryptography.GetBaseStringSignature(this);
-            this.SignedParameters = Cryptography.GetSignature(this);               
+            //this.SignedParameters = Cryptography.GetSignature(this);               
         }
 
         public string GetAuthorizationHeader()

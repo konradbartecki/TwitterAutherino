@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
+using TwitterAutherino.Model.Interfaces;
 
 namespace TwitterAutherino.Model
 {
@@ -39,6 +40,5 @@ namespace TwitterAutherino.Model
         //    this.ConsumerSecret = consumerSecret;
         //    this.AccessToken = accessToken;
         //    this.AccessTokenSecret = accessTokenSecret;
-        }
     }
 }

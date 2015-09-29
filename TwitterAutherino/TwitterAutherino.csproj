@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6d0d1222-ad31-440e-977a-4a1ca6345695}</ProjectGuid>
+    <ProjectGuid>{6D0D1222-AD31-440E-977A-4A1CA6345695}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TwitterAutherino</RootNamespace>
@@ -37,7 +37,16 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Cryptography.cs" />
+    <Compile Include="Model\Enums\HttpMethod.cs" />
+    <Compile Include="Model\Keypair.cs" />
+    <Compile Include="Model\KnownApiUri.cs" />
+    <Compile Include="Model\Signature.cs" />
+    <Compile Include="Model\SignedSignature.cs" />
+    <Compile Include="Model\Interfaces\ISigningKey.cs" />
+    <Compile Include="Model\SigningKey.cs" />
+    <Compile Include="Model\TwitterRequest.cs" />
+    <Compile Include="TwitterAuth.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
@@ -48,5 +57,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-
 </Project>
