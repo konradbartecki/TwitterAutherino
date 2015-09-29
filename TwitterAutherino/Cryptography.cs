@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
+using Windows.Storage.Streams;
 using TwitterAutherino.Model;
 
 namespace TwitterAutherino
@@ -14,12 +11,12 @@ namespace TwitterAutherino
     {
         public static string GetNonce()
         {
-            StringBuilder builder = new StringBuilder();
-            Random random = new Random();
+            var builder = new StringBuilder();
+            var random = new Random();
             char ch;
-            for (int i = 0; i < 32; i++)
+            for (var i = 0; i < 32; i++)
             {
-                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65)));
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26*random.NextDouble() + 65)));
                 builder.Append(ch);
             }
 
@@ -28,20 +25,21 @@ namespace TwitterAutherino
 
         public static string GetTimeStamp()
         {
-            Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            var unixTimestamp = (int) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             return unixTimestamp.ToString();
         }
 
         internal static string GetSignature(SigningKey signingKey)
         {
-            Windows.Storage.Streams.IBuffer KeyMaterial;
+            IBuffer KeyMaterial;
             KeyMaterial = CryptographicBuffer.ConvertStringToBinary(signingKey.GetSigningKey(),
                 BinaryStringEncoding.Utf8);
-            MacAlgorithmProvider HmacSha1Provider = MacAlgorithmProvider.OpenAlgorithm("HMAC_SHA1");
-            CryptographicKey MacKey = HmacSha1Provider.CreateKey(KeyMaterial);
-            Windows.Storage.Streams.IBuffer DataToBeSigned = CryptographicBuffer.ConvertStringToBinary(signingKey.SignatureParameters, BinaryStringEncoding.Utf8);
-            Windows.Storage.Streams.IBuffer SignatureBuffer = CryptographicEngine.Sign(MacKey, DataToBeSigned);
-            string Signature = CryptographicBuffer.EncodeToBase64String(SignatureBuffer);
+            var HmacSha1Provider = MacAlgorithmProvider.OpenAlgorithm("HMAC_SHA1");
+            var MacKey = HmacSha1Provider.CreateKey(KeyMaterial);
+            var DataToBeSigned = CryptographicBuffer.ConvertStringToBinary(signingKey.SignatureParameters,
+                BinaryStringEncoding.Utf8);
+            var SignatureBuffer = CryptographicEngine.Sign(MacKey, DataToBeSigned);
+            var Signature = CryptographicBuffer.EncodeToBase64String(SignatureBuffer);
 
             return Signature;
         }
