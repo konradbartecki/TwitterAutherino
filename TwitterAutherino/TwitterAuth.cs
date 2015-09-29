@@ -168,5 +168,10 @@ namespace TwitterAutherino
 
             return content;
         }
+
+        public Uri GetWebViewUri()
+        {
+            return new Uri("https://api.twitter.com/oauth/authorize?oauth_token=" + this.RequestKeypair.PublicKey);
+        }
     }
 }

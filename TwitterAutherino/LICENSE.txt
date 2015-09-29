@@ -1,0 +1,5 @@
+BSD license
+
+This project uses some code from
+
+  - Facebook-Client SDK (facebook-csharp-sdk/facebook-winclient-sdk)

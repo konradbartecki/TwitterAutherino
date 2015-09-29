@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TwitterAutherino.Controls
+namespace TwitterAutherino.Model.EventArgs
 {
-    class TwitterWebView
+    class RequestUriReadyArgs : System.EventArgs
     {
+        public Uri RequestUri { get; set; }
     }
 }
