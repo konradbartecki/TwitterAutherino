@@ -46,6 +46,7 @@
       <DependentUpon>TwitterWebView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Cryptography.cs" />
+    <Compile Include="Model\EventArgs\RequestUriReadyArgs.cs" />
     <Compile Include="Model\Keypair.cs" />
     <Compile Include="Model\KnownApiUri.cs" />
     <Compile Include="Model\Signature.cs" />

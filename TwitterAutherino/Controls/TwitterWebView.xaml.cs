@@ -22,6 +22,7 @@ namespace TwitterAutherino.Controls
         public TwitterWebView()
         {
             this.InitializeComponent();
+            dialogWebBrowser.Navigate(new Uri("http://google.com"));
         }
 
         private void CloseDialogButton_OnClick(object sender, RoutedEventArgs e)
