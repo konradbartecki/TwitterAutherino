@@ -16,6 +16,7 @@ Add `using TwitterAutherino;` and some button to your page. Subscribe to the but
 
 ```C#
 TwitterAuth twitterAuth;
+
         private async void TwitterButton_Click(object sender, RoutedEventArgs e)
         {
             //Create new TwitterAuth object with your consumer id and consumer secret
