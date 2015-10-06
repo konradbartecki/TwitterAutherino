@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>TwitterAutherino</id>
+    <version>0.12.0.0</version>
+    <title>TwitterAutherino</title>
+    <authors>Konrad Bartecki</authors>
+    <owners>Konrad Bartecki</owners>
+    <licenseUrl>https://github.com/konradbartecki/TwitterAutherino/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/konradbartecki/TwitterAutherino</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Sign in with Twitter OAuth implentation for Windows Phone 8.1</description>
+    <releaseNotes>dev-0.12 First packaging.</releaseNotes>
+    <copyright>Copyright 2015</copyright>
+    <tags>Twitter Signin Oauth</tags>
+  </metadata>
+</package>

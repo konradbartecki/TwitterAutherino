@@ -23,10 +23,10 @@ namespace TwitterAutherino.Controls
         public string ConsumerPublicKey{ get; set; }
         public string ConsumerSecretKey { get; set; }
         public string CallbackUri { get; set; }
+        public FrameworkElement WebDialogPlacementTarget { get; set; }
 
         public event EventHandler AuthenticationFinished;
         public event EventHandler CredentialsVerified;
-        public event EventHandler RequestUriReady;
 
         //public delegate void OnAuthenticationFinishedEventHandler(object sender, EventArgs e);
         //public delegate void OnCredentialsVerifiedEventHandler(object sender, EventArgs e);
@@ -38,29 +38,20 @@ namespace TwitterAutherino.Controls
         public SignInWithTwitterButton()
         {
             this.InitializeComponent();
-            
         }
 
         private async void Image_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _twitter = new TwitterAuth(ConsumerPublicKey, ConsumerSecretKey);
             await _twitter.GetRequestTokenAsync(CallbackUri);
-            requestUri = _twitter.GetWebViewUri();
-            RequestUriReady?.Invoke(this, new RequestUriReadyArgs {RequestUri = requestUri});            
-            ;
-            //get webpage
+            _twitter.GotRequestResponseKeypair += _twitter_GotRequestResponseKeypair;
+            _twitter.ShowWebDialogFlyout(WebDialogPlacementTarget);
 
         }
 
-        public async void InterceptWebViewNavigationStarting(object sender, WebViewNavigationStartingEventArgs args)
+        private void _twitter_GotRequestResponseKeypair(object sender, EventArgs e)
         {
-            var InterceptedAccessToken = _twitter.CheckWebViewNagitationStartingEvent((WebView)sender, args);
-            //Keypair y;
-            if (InterceptedAccessToken != null)
-            {
-                await _twitter.GetAccessTokenAsync();
-                var response = await _twitter.GetUserDetailsAsync();
-            }
+            throw new NotImplementedException();
         }
 
         private void OnAuthenticationFinished()

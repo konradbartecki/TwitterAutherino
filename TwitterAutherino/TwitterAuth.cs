@@ -15,6 +15,13 @@ namespace TwitterAutherino
         public TwitterAuth(string ConsumerKey, string ConsumerSecret)
         {
             ConsumerKeypair = new Keypair(ConsumerKey, ConsumerSecret);
+            this.webView = new WebView();
+            webView.NavigationStarting += WebView_NavigationStarting;
+        }
+
+        private void WebView_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
+        {
+            this.RequestResponseKeypair = CheckWebViewNagitationStartingEvent(sender, args);
         }
 
         //Step 0 (TwitterAuth object creation)
@@ -33,6 +40,8 @@ namespace TwitterAutherino
         public Keypair AccessKeypair { get; private set; }
 
         public User User { get; private set; }
+
+        private WebView webView;
 
         public async Task<Keypair> GetRequestTokenAsync(string callback)
         {
@@ -91,10 +100,11 @@ namespace TwitterAutherino
                 }
             }
             RequestResponseKeypair = new Keypair(request_token, oauth_verifier);
+            GotRequestResponseKeypair?.Invoke(this, EventArgs.Empty);
             return RequestResponseKeypair;
         }
 
-        public async Task<Keypair> GetAccessTokenAsync()
+        public async Task<User> GetAccessTokenAsync()
         {
             var signature = new AccessTokenSignature(
                 new BasicSignature(ConsumerKeypair), RequestResponseKeypair);
@@ -144,7 +154,7 @@ namespace TwitterAutherino
                 AccessKeypair = AccessKeypair,
                 ScreenName = screen_name
             };
-            return AccessKeypair;
+            return User;
         }
 
         public async Task<string> GetUserDetailsAsync()
@@ -172,6 +182,26 @@ namespace TwitterAutherino
         public Uri GetWebViewUri()
         {
             return new Uri("https://api.twitter.com/oauth/authorize?oauth_token=" + this.RequestKeypair.PublicKey);
+        }
+
+        /// <summary>
+        /// Show twitter login web dialog
+        /// </summary>
+        /// <param name="placementTarget">Control on which the webview should be shown</param>
+        public void ShowWebDialogFlyout(FrameworkElement placementTarget)
+        {
+            webView.Navigate(GetWebViewUri());
+            Flyout flyout = new Flyout();
+            Grid grid = new Grid();
+            grid.Children.Add(webView);
+            flyout.ShowAt(placementTarget);
+        }
+
+        public event EventHandler GotRequestResponseKeypair;
+
+        protected virtual void OnGotRequestResponseKeypair()
+        {
+            GotRequestResponseKeypair?.Invoke(this, EventArgs.Empty);
         }
     }
 }
