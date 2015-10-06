@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
 using Windows.Web.Http;
 using Windows.Web.Http.Headers;
 using TwitterAutherino.Model;
@@ -42,6 +43,7 @@ namespace TwitterAutherino
         public User User { get; private set; }
 
         private WebView webView;
+        private Flyout flyout;
 
         public async Task<Keypair> GetRequestTokenAsync(string callback)
         {
@@ -78,6 +80,7 @@ namespace TwitterAutherino
             if (!args.Uri.Query.Contains("oauth_verifier=")) return null;
             //Stop and hide the browser
             sender.Stop();
+            flyout.Hide();
             sender.Visibility = Visibility.Collapsed;
             //Get the token and verifier from the Uri
             var query = args.Uri.Query;
@@ -191,10 +194,11 @@ namespace TwitterAutherino
         public void ShowWebDialogFlyout(FrameworkElement placementTarget)
         {
             webView.Navigate(GetWebViewUri());
-            Flyout flyout = new Flyout();
+            flyout = new Flyout();
             Grid grid = new Grid();
             grid.Children.Add(webView);
-            flyout.Content = grid;                     
+            flyout.Content = grid;
+            flyout.Placement = FlyoutPlacementMode.Full;
             flyout.ShowAt(placementTarget);
         }
 
