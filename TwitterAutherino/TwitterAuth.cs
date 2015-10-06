@@ -194,6 +194,7 @@ namespace TwitterAutherino
             Flyout flyout = new Flyout();
             Grid grid = new Grid();
             grid.Children.Add(webView);
+            flyout.Content = grid;                     
             flyout.ShowAt(placementTarget);
         }
 
