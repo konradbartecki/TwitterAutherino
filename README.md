@@ -3,9 +3,13 @@
 Sign in with Twitter button implementation for Windows Phone 8.1 released as Nuget library
 You can use this NuGet for Windows Universal 8.1, but you should use Web Authentication Broker for Windows 8.1
 
+### Features
+ - Sign in with Twitter OAuth
+ - Getting screen name and access token
+ - Geting JSON of user details
+
 ### How to use
 
-#### Method 1. Making your own Twitter button
 ##### Step 1. Download TwitterAutherino using NuGet
 
 Open the Package Manager Console and type in `Install-Package TwitterAutherino`
@@ -40,9 +44,10 @@ Add `using TwitterAutherino;` and some button to your page. Subscribe to the but
 
 #####
 
-#### Method 2. Using Sign-in-with-Twitter UserControl
-This user control is not working yet. Scheduled for v.0.13
-
+### Incomnig features
+ - Deserialization of Twitter User (v.0.13 - November 2015)
+ - Layout update of WebDialog
+ - UserControl: Sign in with Twitter button
 
 ### Troubleshooting
 ##### Help! I've got exception 401 Unauthorized
