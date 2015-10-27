@@ -47,7 +47,7 @@ namespace TwitterAutherino.Model.TwitterApi
         public int statuses_count { get; set; }
         public string time_zone { get; set; }
         public string url { get; set; }
-        public int utc_offset { get; set; }
+        public int? utc_offset { get; set; }
         public bool verified { get; set; }
         public List<string> withheld_in_countries { get; set; }
         public string withheld_scope { get; set; }
