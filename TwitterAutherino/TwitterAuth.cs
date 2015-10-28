@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.Web.Http;
 using Windows.Web.Http.Headers;
+using Newtonsoft.Json;
 using TwitterAutherino.Model;
+using TwitterAutherino.Model.Exceptions;
+using TwitterAutherino.Model.TwitterApi;
 //using HttpClient = System.Net.Http.HttpClient;
 using wss = Windows.Storage.Streams;
 
@@ -13,11 +17,16 @@ namespace TwitterAutherino
 {
     public class TwitterAuth
     {
-        public TwitterAuth(string ConsumerKey, string ConsumerSecret)
+        public TwitterAuth(string ConsumerKey, string ConsumerSecret, string AccessKey, string AccessSecret)
         {
             ConsumerKeypair = new Keypair(ConsumerKey, ConsumerSecret);
+            if (!string.IsNullOrWhiteSpace(AccessKey) && !string.IsNullOrWhiteSpace(AccessSecret))
+                AccessKeypair = new Keypair(AccessKey, AccessSecret);
             this.webView = new WebView();
             webView.NavigationStarting += WebView_NavigationStarting;
+        }
+        public TwitterAuth(string ConsumerKey, string ConsumerSecret) : this(ConsumerKey, ConsumerSecret, null, null)
+        {
         }
 
         private void WebView_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
@@ -27,10 +36,10 @@ namespace TwitterAutherino
 
         //Step 0 (TwitterAuth object creation)
         //Consumer key and consumer secret
-        //Consumer is the guy or organization who is making the app
+        //Consumer is the guy or organization who is making the client app
         public Keypair ConsumerKeypair { get; }
         //Step 1 (Invisible HTTP GET)
-        //Request token is the first step of oauth downloaded by HTTP silently to user
+        //Request token is the first step of oauth downloaded by HTTP silently
         public Keypair RequestKeypair { get; private set; }
         //Step 2 (Visible WebView)
         //Request response token is the token and verifier intercepted by WebView after user clicks "authorize" in the WebView
@@ -40,7 +49,7 @@ namespace TwitterAutherino
         //Access token is the 'login and password' is the user who is logging in using sign-in-with-twitter button
         public Keypair AccessKeypair { get; private set; }
 
-        public User User { get; private set; }
+        public SimpleUser User { get; private set; }
 
         private WebView webView;
         private Flyout flyout;
@@ -51,28 +60,37 @@ namespace TwitterAutherino
                 new BasicSignature(ConsumerKeypair), callback);
 
             var httpClient = new HttpClient();
-            var GetResponse = await httpClient.GetStringAsync(new Uri(signature.RequestUri));
-
-
-            string request_token = null;
-            string oauth_token_secret = null;
-            var keyValPairs = GetResponse.Split('&');
-
-            for (var i = 0; i < keyValPairs.Length; i++)
+            try
             {
-                var splits = keyValPairs[i].Split('=');
-                switch (splits[0])
+                string GetResponse = await httpClient.GetStringAsync(new Uri(signature.RequestUri));
+                string request_token = null;
+                string oauth_token_secret = null;
+                var keyValPairs = GetResponse.Split('&');
+
+                for (var i = 0; i < keyValPairs.Length; i++)
                 {
-                    case "oauth_token":
-                        request_token = splits[1];
-                        break;
-                    case "oauth_token_secret":
-                        oauth_token_secret = splits[1];
-                        break;
+                    var splits = keyValPairs[i].Split('=');
+                    switch (splits[0])
+                    {
+                        case "oauth_token":
+                            request_token = splits[1];
+                            break;
+                        case "oauth_token_secret":
+                            oauth_token_secret = splits[1];
+                            break;
+                    }
                 }
+                RequestKeypair = new Keypair(request_token, oauth_token_secret);
+                return RequestKeypair;
             }
-            RequestKeypair = new Keypair(request_token, oauth_token_secret);
-            return RequestKeypair;
+            catch (Exception e)
+            {
+                if (e.Message.Contains("401"))
+                    throw new OAuthUnauthorizedException(Strings.ExceptionUnauthorized);
+                else
+                    throw;
+            }
+            return null;
         }
 
         public Keypair CheckWebViewNagitationStartingEvent(WebView sender, WebViewNavigationStartingEventArgs args)
@@ -107,7 +125,7 @@ namespace TwitterAutherino
             return RequestResponseKeypair;
         }
 
-        public async Task<User> GetAccessTokenAsync()
+        public async Task<SimpleUser> GetAccessTokenAsync()
         {
             var signature = new AccessTokenSignature(
                 new BasicSignature(ConsumerKeypair), RequestResponseKeypair);
@@ -116,70 +134,89 @@ namespace TwitterAutherino
                 wss.UnicodeEncoding.Utf8);
             httpContent.Headers.ContentType = HttpMediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
 
-            var authorizationHeaderParams = "oauth_consumer_key=\"" + ConsumerKeypair.PublicKey + 
+            var authorizationHeaderParams = "oauth_consumer_key=\"" + ConsumerKeypair.PublicKey +
                                             "\", oauth_nonce=\"" + signature.Nonce +
-                                            "\", oauth_signature_method=\"HMAC-SHA1\", oauth_signature=\"" + Uri.EscapeDataString(signature.SignedSignature) + 
-                                            "\", oauth_timestamp=\"" + signature.Timestamp + 
+                                            "\", oauth_signature_method=\"HMAC-SHA1\", oauth_signature=\"" + Uri.EscapeDataString(signature.SignedSignature) +
+                                            "\", oauth_timestamp=\"" + signature.Timestamp +
                                             "\", oauth_token=\"" + Uri.EscapeDataString(RequestResponseKeypair.PublicKey) +
                                             "\", oauth_version=\"1.0\"";
 
             var httpClient = new HttpClient();
 
-            httpClient.DefaultRequestHeaders.Authorization = new HttpCredentialsHeaderValue("OAuth",
-                authorizationHeaderParams);
-            var httpResponseMessage = await httpClient.PostAsync(new Uri(signature.RequestUri), httpContent);
-            var response = await httpResponseMessage.Content.ReadAsStringAsync();
-
-            var Tokens = response.Split('&');
-            string oauth_token_secret = null;
-            string access_token = null;
-            string screen_name = null;
-
-            for (var i = 0; i < Tokens.Length; i++)
+            try
             {
-                var splits = Tokens[i].Split('=');
-                switch (splits[0])
+                httpClient.DefaultRequestHeaders.Authorization = new HttpCredentialsHeaderValue("OAuth",
+                        authorizationHeaderParams);
+                var httpResponseMessage = await httpClient.PostAsync(new Uri(signature.RequestUri), httpContent);
+                var response = await httpResponseMessage.Content.ReadAsStringAsync();
+
+                var Tokens = response.Split('&');
+                string oauth_token_secret = null;
+                string access_token = null;
+                string screen_name = null;
+
+                for (var i = 0; i < Tokens.Length; i++)
                 {
-                    case "screen_name":
-                        screen_name = splits[1];
-                        break;
-                    case "oauth_token":
-                        access_token = splits[1];
-                        break;
-                    case "oauth_token_secret":
-                        oauth_token_secret = splits[1];
-                        break;
+                    var splits = Tokens[i].Split('=');
+                    switch (splits[0])
+                    {
+                        case "screen_name":
+                            screen_name = splits[1];
+                            break;
+                        case "oauth_token":
+                            access_token = splits[1];
+                            break;
+                        case "oauth_token_secret":
+                            oauth_token_secret = splits[1];
+                            break;
+                    }
                 }
+                AccessKeypair = new Keypair(access_token, oauth_token_secret);
+                User = new SimpleUser
+                {
+                    AccessKeypair = AccessKeypair,
+                    ScreenName = screen_name
+                };
+                return User;
             }
-            AccessKeypair = new Keypair(access_token, oauth_token_secret);
-            User = new User
+            catch (Exception e)
             {
-                AccessKeypair = AccessKeypair,
-                ScreenName = screen_name
-            };
-            return User;
+                if (e.Message.Contains("401"))
+                    throw new OAuthUnauthorizedException(Strings.ExceptionUnauthorized);
+                else
+                    throw;
+            }
         }
 
-        public async Task<string> GetUserDetailsAsync()
+        public async Task<User> GetUserDetailsAsync()
         {
-            var signature = new GeneralGetSignature(
-                new BasicSignature(ConsumerKeypair), AccessKeypair,
+            if(AccessKeypair == null) throw new OAuthMissingAccessTokenException(Strings.MissingAccessToken);
+
+            var signature = new GeneralGetSignature(new BasicSignature(ConsumerKeypair), AccessKeypair,
                 "https://api.twitter.com/1.1/account/verify_credentials.json");
 
             var authorizationHeaderParams = "oauth_consumer_key=\"" + signature.ConsumerKeypair.PublicKey +
-                                            "\", oauth_nonce=\"" + signature.Nonce + 
+                                            "\", oauth_nonce=\"" + signature.Nonce +
                                             "\", oauth_signature=\"" + Uri.EscapeDataString(signature.SignedSignature) +
-                                            "\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"" + signature.Timestamp + 
+                                            "\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"" + signature.Timestamp +
                                             "\", oauth_token=\"" + Uri.EscapeDataString(signature.AccessKeypair.PublicKey) +
                                             "\", oauth_version=\"1.0\"";
-
-            var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(signature.RequestUri));
-            request.Headers.Authorization = new HttpCredentialsHeaderValue("OAuth", authorizationHeaderParams);
-            var response = await httpClient.SendRequestAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-
-            return content;
+            try
+            {
+                var httpClient = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(signature.RequestUri));
+                request.Headers.Authorization = new HttpCredentialsHeaderValue("OAuth", authorizationHeaderParams);
+                var response = await httpClient.SendRequestAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<User>(content);
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("401"))
+                    throw new OAuthUnauthorizedException(Strings.ExceptionUnauthorized);
+                else
+                    throw;
+            }
         }
 
         public Uri GetWebViewUri()
