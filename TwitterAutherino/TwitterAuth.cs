@@ -95,11 +95,17 @@ namespace TwitterAutherino
 
         public Keypair CheckWebViewNagitationStartingEvent(WebView sender, WebViewNavigationStartingEventArgs args)
         {
-            if (!args.Uri.Query.Contains("oauth_verifier=")) return null;
             //Stop and hide the browser
-            sender.Stop();
-            flyout.Hide();
-            sender.Visibility = Visibility.Collapsed;
+            if (args.Uri.Query.Contains("denied") 
+                || args.Uri.Query.Contains("oauth_verifier=") 
+                || args.Uri.AbsoluteUri == "https://api.twitter.com/oauth/authorize")
+            {
+                sender.Stop();
+                flyout.Hide();
+                sender.Visibility = Visibility.Collapsed;
+            }
+            if (!args.Uri.Query.Contains("oauth_verifier="))
+                return null;
             //Get the token and verifier from the Uri
             var query = args.Uri.Query;
             query = query.Substring(query.IndexOf("oauth_token", StringComparison.Ordinal));
