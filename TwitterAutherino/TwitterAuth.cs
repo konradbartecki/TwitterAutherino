@@ -97,8 +97,7 @@ namespace TwitterAutherino
         {
             //Stop and hide the browser
             if (args.Uri.Query.Contains("denied") 
-                || args.Uri.Query.Contains("oauth_verifier=") 
-                || args.Uri.AbsoluteUri == "https://api.twitter.com/oauth/authorize")
+                || args.Uri.Query.Contains("oauth_verifier="))
             {
                 sender.Stop();
                 flyout.Hide();
