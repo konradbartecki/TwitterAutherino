@@ -45,7 +45,6 @@ Add `using TwitterAutherino;` and some button to your page. Subscribe to the but
 #####
 
 ### Incomnig features
- - Deserialization of Twitter User (v.0.13 - November 2015)
  - Layout update of WebDialog
  - UserControl: Sign in with Twitter button
 
